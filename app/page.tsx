@@ -34,7 +34,7 @@ export interface Task {
   createdAt: string
 }
 
-const supabase = createClient("https://YOUR_PROJECT.supabase.co", "YOUR_PUBLIC_ANON_KEY")
+const supabase = createClient("https://jzozwvmvjtcjjjugruof.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6b3p3dm12anRjampqdWdydW9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQxOTAxMjMsImV4cCI6MjA2OTc2NjEyM30.w_JP_t3W3rII0XNZz9_V2BdssVsSXs_OY2wbU1aenLQ")
 
 export default function RoutineTracker() {
   const [user, setUser] = useState<any>(null)
