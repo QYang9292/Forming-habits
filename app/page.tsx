@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Plus, Target, Calendar, TrendingUp } from "lucide-react"
+import { createClient } from "@supabase/supabase-js"
 import { Button } from "@/components/ui/button"
+import { Plus, Target, Calendar, TrendingUp, LogIn, LogOut } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -33,31 +34,48 @@ export interface Task {
   createdAt: string
 }
 
+const supabase = createClient("https://YOUR_PROJECT.supabase.co", "YOUR_PUBLIC_ANON_KEY")
+
 export default function RoutineTracker() {
+  const [user, setUser] = useState<any>(null)
   const [routines, setRoutines] = useState<Routine[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
   const [showAddRoutineDialog, setShowAddRoutineDialog] = useState(false)
   const [showAddTaskDialog, setShowAddTaskDialog] = useState(false)
 
   useEffect(() => {
-    const savedRoutines = localStorage.getItem("routines")
-    if (savedRoutines) {
-      setRoutines(JSON.parse(savedRoutines))
-    }
-
-    const savedTasks = localStorage.getItem("tasks")
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks))
-    }
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user)
+    })
   }, [])
 
   useEffect(() => {
-    localStorage.setItem("routines", JSON.stringify(routines))
+    if (!user) {
+      const savedRoutines = localStorage.getItem("routines")
+      if (savedRoutines) setRoutines(JSON.parse(savedRoutines))
+
+      const savedTasks = localStorage.getItem("tasks")
+      if (savedTasks) setTasks(JSON.parse(savedTasks))
+    } else {
+      // 로그인 상태일 경우 Supabase 연동 예정
+    }
+  }, [user])
+
+  useEffect(() => {
+    if (!user) localStorage.setItem("routines", JSON.stringify(routines))
   }, [routines])
 
   useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(tasks))
+    if (!user) localStorage.setItem("tasks", JSON.stringify(tasks))
   }, [tasks])
+
+  const signInWithGoogle = async () => {
+    await supabase.auth.signInWithOAuth({ provider: "google" })
+  }
+  const signOut = async () => {
+    await supabase.auth.signOut()
+    setUser(null)
+  }
 
   const addRoutine = (routine: Omit<Routine, "id" | "createdAt" | "completedDates">) => {
     const newRoutine: Routine = {
@@ -71,15 +89,16 @@ export default function RoutineTracker() {
 
   const toggleRoutine = (routineId: string, date: string) => {
     setRoutines(
-      routines.map((routine) => {
-        if (routine.id === routineId) {
-          const completedDates = routine.completedDates.includes(date)
-            ? routine.completedDates.filter((d) => d !== date)
-            : [...routine.completedDates, date]
-          return { ...routine, completedDates }
-        }
-        return routine
-      }),
+      routines.map((routine) =>
+        routine.id === routineId
+          ? {
+              ...routine,
+              completedDates: routine.completedDates.includes(date)
+                ? routine.completedDates.filter((d) => d !== date)
+                : [...routine.completedDates, date],
+            }
+          : routine
+      )
     )
   }
 
@@ -99,12 +118,7 @@ export default function RoutineTracker() {
 
   const toggleTask = (taskId: string) => {
     setTasks(
-      tasks.map((task) => {
-        if (task.id === taskId) {
-          return { ...task, completed: !task.completed }
-        }
-        return task
-      }),
+      tasks.map((task) => (task.id === taskId ? { ...task, completed: !task.completed } : task))
     )
   }
 
@@ -112,29 +126,41 @@ export default function RoutineTracker() {
     setTasks(tasks.filter((task) => task.id !== taskId))
   }
 
-  // 완료되지 않은 루틴만 필터링
   const activeRoutines = routines.filter((routine) => routine.completedDates.length < routine.targetDays)
-
   const today = new Date().toISOString().split("T")[0]
   const todayCompletedCount = activeRoutines.filter((routine) => routine.completedDates.includes(today)).length
-
   const totalActiveRoutines = activeRoutines.length
   const completionRate = totalActiveRoutines > 0 ? (todayCompletedCount / totalActiveRoutines) * 100 : 0
-
-  // Task 통계
   const activeTasks = tasks.filter((task) => !task.completed)
   const completedTasks = tasks.filter((task) => task.completed)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">루틴 & 업무 관리</h1>
-          <p className="text-gray-600">매일 조금씩, 더 나은 나를 만들어가세요</p>
+        {/* 로그인 버튼 */}
+        <div className="flex justify-end mb-4">
+          {user ? (
+            <Button onClick={signOut}>
+              <LogOut className="mr-2 h-4 w-4" />
+              로그아웃
+            </Button>
+          ) : (
+            <Button onClick={signInWithGoogle}>
+              <LogIn className="mr-2 h-4 w-4" />
+              Google 로그인
+            </Button>
+          )}
         </div>
 
-        {/* Today's Overview */}
+        {/* 헤더 */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">루틴 & 업무 관리</h1>
+          <p className="text-gray-600">
+            {user ? `${user.email}님 환영합니다` : "매일 조금씩, 더 나은 나를 만들어가세요"}
+          </p>
+        </div>
+
+        {/* 통계 카드 */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -156,9 +182,6 @@ export default function RoutineTracker() {
               <div className="text-2xl font-bold">
                 {todayCompletedCount}/{totalActiveRoutines}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {totalActiveRoutines > 0 ? "좋은 하루네요!" : "첫 루틴을 추가해보세요"}
-              </p>
             </CardContent>
           </Card>
 
@@ -169,7 +192,6 @@ export default function RoutineTracker() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{activeTasks.length}</div>
-              <p className="text-xs text-muted-foreground mt-1">처리 대기 중</p>
             </CardContent>
           </Card>
 
@@ -180,12 +202,11 @@ export default function RoutineTracker() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{completedTasks.length}</div>
-              <p className="text-xs text-muted-foreground mt-1">오늘도 수고하셨어요!</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Main Content */}
+        {/* 탭 뷰 */}
         <Tabs defaultValue="routines" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="routines">루틴</TabsTrigger>
@@ -209,14 +230,20 @@ export default function RoutineTracker() {
                   <h3 className="text-lg font-medium text-gray-900 mb-2">아직 루틴이 없습니다</h3>
                   <p className="text-gray-500 mb-4">첫 번째 루틴을 추가하고 성장을 시작해보세요!</p>
                   <Button onClick={() => setShowAddRoutineDialog(true)}>
-                    <Plus className="h-4 w-4 mr-2" />첫 루틴 만들기
+                    <Plus className="h-4 w-4 mr-2" />
+                    첫 루틴 만들기
                   </Button>
                 </CardContent>
               </Card>
             ) : (
               <div className="grid gap-4">
                 {activeRoutines.map((routine) => (
-                  <RoutineCard key={routine.id} routine={routine} onToggle={toggleRoutine} onDelete={deleteRoutine} />
+                  <RoutineCard
+                    key={routine.id}
+                    routine={routine}
+                    onToggle={toggleRoutine}
+                    onDelete={deleteRoutine}
+                  />
                 ))}
               </div>
             )}
@@ -242,7 +269,11 @@ export default function RoutineTracker() {
           onAddRoutine={addRoutine}
         />
 
-        <AddTaskDialog open={showAddTaskDialog} onOpenChange={setShowAddTaskDialog} onAddTask={addTask} />
+        <AddTaskDialog
+          open={showAddTaskDialog}
+          onOpenChange={setShowAddTaskDialog}
+          onAddTask={addTask}
+        />
       </div>
     </div>
   )
