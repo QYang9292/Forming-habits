@@ -1,5 +1,5 @@
 "use client"
-import { Check, Flame, Trash2, Calendar } from "lucide-react"
+import { Check, Flame, Trash2, Calendar, Edit } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -21,9 +21,10 @@ interface RoutineCardProps {
   routine: Routine
   onToggle: (routineId: string, date: string) => void
   onDelete: (routineId: string) => void
+  onEdit: (routine: Routine) => void
 }
 
-export default function RoutineCard({ routine, onToggle, onDelete }: RoutineCardProps) {
+export default function RoutineCard({ routine, onToggle, onDelete, onEdit }: RoutineCardProps) {
   const today = new Date().toISOString().split("T")[0]
   const isCompletedToday = routine.completedDates.includes(today)
 
@@ -63,7 +64,15 @@ export default function RoutineCard({ routine, onToggle, onDelete }: RoutineCard
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <Badge variant="secondary">{routine.category}</Badge>
+            {routine.category && <Badge variant="secondary">{routine.category}</Badge>}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-blue-500 hover:text-blue-700"
+              onClick={() => onEdit(routine)}
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700">
