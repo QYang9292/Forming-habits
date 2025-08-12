@@ -25,11 +25,14 @@ export interface Routine {
 export interface Task {
   id: string
   name: string
-  description: string
+  description?: string
+  note?: string
+  due?: string
   importance: number
   urgency: number
   completed: boolean
   createdAt: string
+  tags?: string[]
 }
 
 export default function RoutineTracker() {
@@ -48,6 +51,43 @@ export default function RoutineTracker() {
     const savedTasks = localStorage.getItem("tasks")
     if (savedTasks) {
       setTasks(JSON.parse(savedTasks))
+    } else {
+      // Add sample tasks for initial seeding
+      const sampleTasks: Task[] = [
+        {
+          id: "1",
+          name: "프로젝트 보고서 작성",
+          note: "월말 보고서 준비",
+          due: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+          importance: 80,
+          urgency: 70,
+          completed: false,
+          createdAt: new Date().toISOString(),
+          tags: ["업무", "보고서"],
+        },
+        {
+          id: "2",
+          name: "팀 미팅 준비",
+          note: "주간 회의 자료 준비",
+          importance: 60,
+          urgency: 80,
+          completed: false,
+          createdAt: new Date().toISOString(),
+          tags: ["미팅"],
+        },
+        {
+          id: "3",
+          name: "새로운 기술 학습",
+          note: "React 18 새 기능 공부",
+          importance: 70,
+          urgency: 30,
+          completed: false,
+          createdAt: new Date().toISOString(),
+          tags: ["학습", "개발"],
+        },
+      ]
+      setTasks(sampleTasks)
+      localStorage.setItem("tasks", JSON.stringify(sampleTasks))
     }
   }, [])
 
@@ -105,6 +145,10 @@ export default function RoutineTracker() {
       completed: false,
     }
     setTasks([...tasks, newTask])
+  }
+
+  const updateTask = (taskId: string, updates: Partial<Task>) => {
+    setTasks(tasks.map((task) => (task.id === taskId ? { ...task, ...updates } : task)))
   }
 
   const toggleTask = (taskId: string) => {
@@ -241,6 +285,7 @@ export default function RoutineTracker() {
               onToggle={toggleTask}
               onDelete={deleteTask}
               onAddTask={() => setShowAddTaskDialog(true)}
+              onUpdateTask={updateTask}
             />
           </TabsContent>
 
