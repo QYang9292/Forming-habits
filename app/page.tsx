@@ -195,7 +195,7 @@ export default function RoutineTracker() {
               <Target className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-gray-600">
                 {todayCompletedRoutines.length}/{totalActiveRoutines}
               </div>
               <p className="text-xs text-gray-600">완료율 {completionRate.toFixed(0)}%</p>
@@ -205,7 +205,7 @@ export default function RoutineTracker() {
           <Card className="bg-white/80 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">완료한 루틴</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
+              <CheckCircle className="h-4 w-4 text-gray-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">{completedRoutines.length}</div>
@@ -219,7 +219,7 @@ export default function RoutineTracker() {
               <Clock className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{activeTasks.length}</div>
+              <div className="text-2xl font-bold text-gray-600">{activeTasks.length}</div>
               <p className="text-xs text-gray-600">진행 중인 업무</p>
             </CardContent>
           </Card>
@@ -230,7 +230,7 @@ export default function RoutineTracker() {
               <AlertCircle className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-purple-600">{completedTasks.length}</div>
+              <div className="text-2xl font-bold text-gray-600">{completedTasks.length}</div>
               <p className="text-xs text-gray-600">완료된 업무</p>
             </CardContent>
           </Card>
