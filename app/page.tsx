@@ -192,7 +192,7 @@ export default function RoutineTracker() {
           <Card className="bg-white/80 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">오늘의 루틴</CardTitle>
-              <Target className="h-4 w-4 text-blue-600" />
+              <Target className="h-4 w-4 text-gray-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-600">
