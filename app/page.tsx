@@ -10,6 +10,13 @@ import AddRoutineDialog from "@/components/add-routine-dialog"
 import TaskMatrix from "@/components/task-matrix"
 import AddTaskDialog from "@/components/add-task-dialog"
 import StatsView from "@/components/stats-view"
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+
+export default async function Home() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
 export interface Routine {
   id: string
